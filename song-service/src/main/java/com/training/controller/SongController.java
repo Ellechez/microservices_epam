@@ -26,14 +26,9 @@ public class SongController {
     public ResponseEntity<SongDto> getSongByResourceId(@PathVariable @Positive Integer id) {
         return ResponseEntity.ok(songService.getSongByResourceId(id));
     }
-    @GetMapping(value="/songs/get-last-song", produces = "application/json")
-    public ResponseEntity<SongDto> getLastSong() {
-        return ResponseEntity.ok(songService.findFirstByOrderByIdDesc());
-    }
 
     @DeleteMapping(value = "/songs", produces = "application/json")
-    public ResponseEntity<Object> deleteSongs(@RequestParam String id) {
-
-        return ResponseEntity.ok( songService.deleteSongs(id));
+    public ResponseEntity<Map<String, List<Integer>>> deleteSongs(@RequestParam String id) {
+        return ResponseEntity.ok(songService.deleteSongs(id));
     }
 }

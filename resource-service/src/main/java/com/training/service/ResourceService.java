@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,34 +38,13 @@ public class ResourceService {
         this.restTemplate = restTemplate;
     }
 
-    public void isMp3File(byte[] file) {
-        if (file == null || file.length < 3) {
-            throw new BadRequestException("The uploaded file is too short to be valid.");
-        }
-
-        // Check for the ID3 tag (MP3 files often start with this)
-        if (file[0] == 'I' && file[1] == 'D' && file[2] == '3') {
-            return;
-        }
-
-        // Check for the MPEG-1 header (alternative method)
-        if (file[0] == (byte) 0xFF && (file[1] & 0xF0) == 0xF0) {
-            return;
-        }
-
-        throw new BadRequestException("The uploaded file is not a valid MP3.");
-    }
-
     /**
      * Upload new resource by saving file details into DB.
      */
     @Transactional
     public ResourceDTO saveResource(MultipartFile fileData) throws TikaException, IOException, SAXException {
-        if (fileData == null || fileData.getSize() == 0) {
-            throw new IllegalArgumentException("The uploaded file is empty.");
-        }
-        byte[] fileBytes = fileData.getBytes(); // Get raw binary data
-        isMp3File(fileBytes); // Validate MP3 data
+        byte[] fileBytes = fileData.getBytes();
+        isMp3File(fileBytes);
 
         ResourceMetadata resourceMetadata = Mp3MetadataConvertor.convert(fileData.getInputStream());
         logger.info("Song metadata:" + resourceMetadata);
@@ -85,18 +65,26 @@ public class ResourceService {
         return new ResourceDTO(resource.getId());
     }
 
+    private void isMp3File(byte[] file) {
+        if (file == null || file.length < 3) {
+            throw new BadRequestException("Invalid file format: application/json. Only MP3 files are allowed");
+        }
+        if (file[0] == 'I' && file[1] == 'D' && file[2] == '3') return;
+        if (file[0] == (byte) 0xFF && (file[1] & 0xF0) == 0xF0) return;
+
+        throw new BadRequestException("Invalid file format: application/json. Only MP3 files are allowed");
+    }
+
     private void postSongMetadata(Integer resourceId, ResourceMetadata metadata) {
         String songServiceUrl = "http://localhost:8081/songs";
         SongDto songDto = new SongDto(
-                resourceId, // The ID should match the Resource ID
+                resourceId,
                 metadata.getName(),
                 metadata.getArtist(),
                 metadata.getAlbum(),
                 metadata.getLength(),
                 metadata.getYear()
         );
-
-        // Make POST request to song-service
         restTemplate.postForEntity(songServiceUrl, songDto, Void.class);
     }
 
@@ -104,8 +92,8 @@ public class ResourceService {
      * Fetch a resource from the database by ID.
      */
     public Resource getResource(Integer id) {
-        if (id <= 0) { // Check for negative IDs
-            throw new BadRequestException("IDs are not allowed: " + id);
+        if (id <= 0) {
+            throw new BadRequestException("Invalid value '" + id + "' for ID. Must be a positive integer.");
         }
         return resourceRepository.findById(id).orElseThrow(() ->
                 new NoSuchElementException("Resource with ID=" + id + " not found.")
@@ -117,39 +105,47 @@ public class ResourceService {
      */
     @Transactional
     public List<Integer> removeFiles(String ids) {
-        if (ids == null || ids.isEmpty()) {
-            throw new BadRequestException("IDs parameter cannot be empty");
-        }
-        if (ids.length() > 200) {
-            throw new BadRequestException("The CSV string exceeds the maximum allowed length of 200 characters");
-        }
-
-        List<Integer> idList = Arrays.stream(ids.split(","))
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
-        List<Integer> notFoundIds = idList.stream()
-                .filter(id -> !resourceRepository.existsById(id))
-                .toList();
+        checkIfValid(ids);
+        List<Integer> idList = Arrays.stream(ids.split(",")).map(Integer::parseInt).collect(Collectors.toList());
+        List<Integer> notFoundIds = idList.stream().filter(id -> !resourceRepository.existsById(id)).toList();
         idList.removeAll(notFoundIds);
         List<Resource> resources = resourceRepository.findAllById(idList);
 
         logger.info("Resources found:" + resources);
 
-        if (resources.isEmpty()) {
-            return List.of();
-        }
+        if (resources.isEmpty()) return List.of();
 
         // REST call to song-service to delete associated metadata
         try {
-            restTemplate.delete("http://localhost:8081/songs?id=" + ids); // Adjust host/port accordingly
+            restTemplate.delete("http://localhost:8081/songs?id=" + ids);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex);
         }
 
-        // Delete the resource records
         resourceRepository.deleteAllInBatch(resources);
 
-        // Return successfully deleted resource IDs
         return resources.stream().map(Resource::getId).collect(Collectors.toList());
+    }
+
+    private void checkIfValid(String ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new BadRequestException("IDs parameter cannot be empty");
+        }
+        if (ids.length() > 200) {
+            throw new BadRequestException(
+                    "CSV string is too long: received " + ids.length() + " characters, maximum allowed is 200.");
+        }
+        Arrays.stream(ids.split(",")).forEach(str -> {
+                    if (!isNumeric(str)) throw new BadRequestException(
+                            "Invalid ID format: '" + str + "'. Only positive integers are allowed");
+                });
+    }
+
+    public boolean isNumeric(String strNum) {
+        Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+        if (strNum == null) {
+            return false;
+        }
+        return pattern.matcher(strNum).matches();
     }
 }
