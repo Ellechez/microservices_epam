@@ -1,10 +1,7 @@
 package com.training.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Data
@@ -12,6 +9,7 @@ import lombok.Setter;
 @Setter
 @Table(name = "SONG")
 @NoArgsConstructor
+@AllArgsConstructor
 public class Song {
 
     @Id
@@ -22,17 +20,5 @@ public class Song {
     private String album;
     private String length;
     private String year;
-
-    public Song(Integer id, String name, String artist, String album, String length, String year) {
-        this.id = id;
-        this.name = name;
-        this.artist = artist;
-        this.album = album;
-        this.length = length;
-        this.year = year;
-    }
-
-
-
 
 }

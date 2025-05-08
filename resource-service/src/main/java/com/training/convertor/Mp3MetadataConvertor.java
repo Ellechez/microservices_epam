@@ -6,7 +6,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
-import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.apache.tika.sax.BodyContentHandler;
 import org.xml.sax.SAXException;
@@ -25,14 +24,12 @@ public class Mp3MetadataConvertor {
 
         ResourceMetadata resourceMetadata = new ResourceMetadata();
 
-        // Map metadata fields
         resourceMetadata.setName(metadata.get("dc:title"));
         resourceMetadata.setArtist(metadata.get("xmpDM:artist"));
         resourceMetadata.setAlbum(metadata.get("xmpDM:album"));
         resourceMetadata.setLength(convertToMMSS(metadata.get("xmpDM:duration")));
         resourceMetadata.setYear(metadata.get("xmpDM:releaseDate"));
 
-        // Validate extracted metadata
         if (isEmpty(resourceMetadata.getName()) || isEmpty(resourceMetadata.getArtist()) || isEmpty(resourceMetadata.getAlbum())) {
             logger.error("Invalid MP3 metadata: Missing mandatory fields (name, artist, album). Metadata: {}", resourceMetadata);
             throw new IllegalArgumentException("Invalid MP3 Metadata: Missing mandatory fields like name, artist, or album.");

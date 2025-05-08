@@ -13,14 +13,14 @@ public class Resource {
 
     @Id
     @NotNull
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto-increment for PostgreSQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     private String fileName;
 
     private String type;
 
-    @Column(columnDefinition = "BYTEA") // PostgreSQL binary data type
+    @Column(columnDefinition = "BYTEA")
     private byte[] data;
 
     public Resource(String name, String type, byte[] data) {
