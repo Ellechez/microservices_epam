@@ -14,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -42,15 +42,14 @@ public class ResourceService {
      * Upload new resource by saving file details into DB.
      */
     @Transactional
-    public ResourceDTO saveResource(MultipartFile fileData) throws TikaException, IOException, SAXException {
-        byte[] fileBytes = fileData.getBytes();
+    public ResourceDTO saveResource(byte[] fileBytes) throws TikaException, IOException, SAXException {
         isMp3File(fileBytes);
 
-        ResourceMetadata resourceMetadata = Mp3MetadataConvertor.convert(fileData.getInputStream());
+        ResourceMetadata resourceMetadata = Mp3MetadataConvertor.convert(new ByteArrayInputStream(fileBytes));
         logger.info("Song metadata:" + resourceMetadata);
         String filename = resourceMetadata.getName();
 
-        Resource resource = new Resource(filename, "audio/mpeg", fileData.getBytes());
+        Resource resource = new Resource(filename, "audio/mpeg", fileBytes);
         Resource savedResource = resourceRepository.save(resource);
 
         // REST call to song-service to delete associated metadata
