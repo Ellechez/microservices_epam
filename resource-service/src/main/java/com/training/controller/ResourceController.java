@@ -28,8 +28,8 @@ public class ResourceController {
         this.resourceService = resourceService;
     }
 
-    @PostMapping(path = "/resources", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
-    public ResponseEntity<ResourceDTO> uploadResource(@RequestParam("file") MultipartFile file) throws TikaException, IOException, SAXException {
+    @PostMapping(path = "/resources", consumes = "audio/mpeg", produces = "application/json")
+    public ResponseEntity<ResourceDTO> uploadResource(@RequestBody byte[] file) throws TikaException, IOException, SAXException {
         return ResponseEntity.ok().body(resourceService.saveResource(file));
     }
     @GetMapping(path = "/resources/{id}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
