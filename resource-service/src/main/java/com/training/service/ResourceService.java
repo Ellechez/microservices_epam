@@ -92,10 +92,10 @@ public class ResourceService {
      */
     public Resource getResource(Integer id) {
         if (id <= 0) {
-            throw new BadRequestException("Invalid value '" + id + "' for ID. Must be a positive integer.");
+            throw new BadRequestException("Invalid value '" + id + "' for ID. Must be a positive integer");
         }
         return resourceRepository.findById(id).orElseThrow(() ->
-                new NoSuchElementException("Resource with ID=" + id + " not found.")
+                new NoSuchElementException("Resource with ID=" + id + " not found")
         );
     }
 
@@ -132,7 +132,7 @@ public class ResourceService {
         }
         if (ids.length() > 200) {
             throw new BadRequestException(
-                    "CSV string is too long: received " + ids.length() + " characters, maximum allowed is 200.");
+                    "CSV string is too long: received " + ids.length() + " characters, maximum allowed is 200");
         }
         Arrays.stream(ids.split(",")).forEach(str -> {
                     if (!isNumeric(str)) throw new BadRequestException(
