@@ -38,7 +38,7 @@ public class SongService {
     public Song store(SongDto songDto) {
 
         if (songRepository.existsById(songDto.getId())) {
-            throw new AlreadyExistsException("Metadata for resource ID=" + songDto.getId().toString() + " already exists.");
+            throw new AlreadyExistsException("Metadata for resource ID=" + songDto.getId().toString() + " already exists");
         }
 
         validateData(songDto);
@@ -59,33 +59,33 @@ public class SongService {
     private static void validateData(SongDto songDto) {
         Map<String, String> errorDetails= new HashMap<>();
         if (songDto.getId() == null) {
-            errorDetails.put("name", "Song name is required.");
+            errorDetails.put("id", "Song id is required");
         }
         if (songDto.getName() == null) {
-            errorDetails.put("name", "Song name is required.");
+            errorDetails.put("name", "Song name is required");
         }
         if (songDto.getArtist() == null) {
-            errorDetails.put("name", "Song name is required.");
+            errorDetails.put("artist", "Song artist is required");
         }
         if (songDto.getId() != null && songDto.getId() <= 0) {
-            errorDetails.put("id", "Resource ID must be a positive number.");
+            errorDetails.put("id", "Resource ID must be a positive number");
         }
         if (songDto.getName() != null && songDto.getName().length() > 100) {
-            errorDetails.put("name", "Name must be less than or equal to 100 characters.");
+            errorDetails.put("name", "Name must be less than or equal to 100 characters");
         }
         if (songDto.getArtist() != null && songDto.getArtist().length() > 100) {
-            errorDetails.put("artist", "Artist must be less than or equal to 100 characters.");
+            errorDetails.put("artist", "Artist must be less than or equal to 100 characters");
         }
         if (songDto.getAlbum() != null && songDto.getAlbum().length() > 100) {
-            errorDetails.put("album", "Album must be less than or equal to 100 characters.");
+            errorDetails.put("album", "Album must be less than or equal to 100 characters");
         }
         if (songDto.getDuration() != null
                 && (!songDto.getDuration().matches("\\d{2}:\\d{2}")
                 || Arrays.stream(songDto.getDuration().split(":")).anyMatch(n -> Integer.parseInt(n) > 60))) {
-            errorDetails.put("duration", "Duration must be in mm:ss format with leading zeros.");
+            errorDetails.put("duration", "Duration must be in mm:ss format with leading zeros");
         }
         if (songDto.getYear() != null && !songDto.getYear().matches("^\\d{4}$")) {
-            errorDetails.put("year", "Year must be between 1900 and 2099.");
+            errorDetails.put("year", "Year must be between 1900 and 2099");
         }
         if (!errorDetails.isEmpty()) {
             throw new ValidationNotPassedException("Validation error", errorDetails);
@@ -122,7 +122,7 @@ public class SongService {
         }
         if (ids.length() > 200) {
             throw new BadRequestException(
-                    "CSV string is too long: received " + ids.length() + " characters, maximum allowed is 200.");
+                    "CSV string is too long: received " + ids.length() + " characters, maximum allowed is 200");
         }
         Arrays.stream(ids.split(",")).forEach(str -> {
             if (!isNumeric(str)) throw new BadRequestException(
