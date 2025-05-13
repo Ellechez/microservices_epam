@@ -75,7 +75,7 @@ public class ResourceService {
     }
 
     private void postSongMetadata(Integer resourceId, ResourceMetadata metadata) {
-        String songServiceUrl = "http://localhost:8081/songs";
+        String songServiceUrl = "http://song-service:8081/songs";
         SongDto songDto = new SongDto(
                 resourceId,
                 metadata.getName(),
@@ -116,7 +116,7 @@ public class ResourceService {
 
         // REST call to song-service to delete associated metadata
         try {
-            restTemplate.delete("http://localhost:8081/songs?id=" + ids);
+            restTemplate.delete("http://song-service:8081/songs?id=" + ids);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex);
         }
