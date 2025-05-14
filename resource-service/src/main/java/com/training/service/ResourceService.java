@@ -11,6 +11,7 @@ import org.apache.tika.exception.TikaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -31,6 +32,9 @@ public class ResourceService {
     private ResourceRepository resourceRepository;
     private final RestTemplate restTemplate;
     private static final Logger logger = LoggerFactory.getLogger(ResourceService.class);
+
+    @Value("${song.service.url}")
+    private String songServiceUrl;
 
     @Autowired
     public ResourceService(ResourceRepository resourceRepository, RestTemplate restTemplate) {
@@ -54,18 +58,11 @@ public class ResourceService {
 
         // REST call to song-service to delete associated metadata
         try {
-            postSongMetadata(savedResource.getId(), resourceMetadata, "http://song-service:8081/songs");
+            postSongMetadata(savedResource.getId(), resourceMetadata, songServiceUrl + "/songs");
             logger.info("Song metadata posted successfully for Resource ID: {}", savedResource.getId());
         } catch (Exception ex) {
             logger.error("Failed to post Song metadata for Resource ID {}: {}", savedResource.getId(), ex.getMessage());
-            try {
-                postSongMetadata(savedResource.getId(), resourceMetadata, "http://localhost:8081/songs");
-                logger.info("Song metadata posted successfully for Resource ID: {}", savedResource.getId());
-            } catch (Exception ex2) {
-                logger.error("Failed to post Song metadata for Resource ID {}: {}", savedResource.getId(), ex2.getMessage());
-                throw new RuntimeException("Failed to post metadata to song-service", ex2);
-            }
-
+            throw new RuntimeException("Failed to post metadata to song-service", ex);
         }
 
         return new ResourceDTO(resource.getId());
@@ -122,13 +119,9 @@ public class ResourceService {
 
         // REST call to song-service to delete associated metadata
         try {
-            restTemplate.delete("http://song-service:8081/songs?id=" + ids);
-        } catch (Exception ex) {
-            try {
-                restTemplate.delete("http://localhost:8081/songs?id=" + ids);
-            } catch (Exception ex2) {
-                throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex2);
-            }
+            restTemplate.delete(songServiceUrl + "songs?id=" + ids);
+        } catch (Exception ex2) {
+            throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex2);
         }
 
         resourceRepository.deleteAllInBatch(resources);
