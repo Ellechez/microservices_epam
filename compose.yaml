@@ -2,7 +2,7 @@ version: "3.9"
 services:
 
   resource-db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: resource-db
     environment:
       POSTGRES_DB: ${RESOURCE_DB_NAME}
@@ -22,7 +22,7 @@ services:
 
 
   song-db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: song-db
     environment:
       POSTGRES_DB: ${SONG_DB_NAME}

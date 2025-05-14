@@ -1,10 +1,7 @@
 # Dockerfile
 
 # --- Build Stage ---
-FROM eclipse-temurin:21-alpine as build
-
-# Install Maven and other required tools
-RUN apk add --no-cache maven
+FROM maven:3.9.9-eclipse-temurin-21-alpine as build
 
 # Set the working directory for the build stage
 WORKDIR /app
@@ -19,10 +16,10 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 
 # Build the project and skip tests for a faster build
-RUN mvn clean package -D maven.test.skip=true
+RUN mvn clean package -Dmaven.test.skip=true
 
 # --- Runtime Stage ---
-FROM eclipse-temurin:17-jre-alpine as runtime
+FROM maven:3.9.9-eclipse-temurin-21-alpine as runtime
 
 # Set the working directory for the runtime stage
 WORKDIR /app
@@ -31,7 +28,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Expose the application port
-EXPOSE 8081
+EXPOSE 8080
 
 # Define the command to run the application
 CMD ["java", "-jar", "app.jar"]

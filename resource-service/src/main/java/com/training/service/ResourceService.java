@@ -54,11 +54,18 @@ public class ResourceService {
 
         // REST call to song-service to delete associated metadata
         try {
-            postSongMetadata(savedResource.getId(), resourceMetadata);
+            postSongMetadata(savedResource.getId(), resourceMetadata, "http://song-service:8081/songs");
             logger.info("Song metadata posted successfully for Resource ID: {}", savedResource.getId());
         } catch (Exception ex) {
             logger.error("Failed to post Song metadata for Resource ID {}: {}", savedResource.getId(), ex.getMessage());
-            throw new RuntimeException("Failed to post metadata to song-service", ex);
+            try {
+                postSongMetadata(savedResource.getId(), resourceMetadata, "http://localhost:8081/songs");
+                logger.info("Song metadata posted successfully for Resource ID: {}", savedResource.getId());
+            } catch (Exception ex2) {
+                logger.error("Failed to post Song metadata for Resource ID {}: {}", savedResource.getId(), ex2.getMessage());
+                throw new RuntimeException("Failed to post metadata to song-service", ex2);
+            }
+
         }
 
         return new ResourceDTO(resource.getId());
@@ -74,8 +81,7 @@ public class ResourceService {
         throw new BadRequestException("Invalid file format: application/json. Only MP3 files are allowed");
     }
 
-    private void postSongMetadata(Integer resourceId, ResourceMetadata metadata) {
-        String songServiceUrl = "http://song-service:8081/songs";
+    private void postSongMetadata(Integer resourceId, ResourceMetadata metadata, String songServiceUrl) {
         SongDto songDto = new SongDto(
                 resourceId,
                 metadata.getName(),
@@ -118,7 +124,11 @@ public class ResourceService {
         try {
             restTemplate.delete("http://song-service:8081/songs?id=" + ids);
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex);
+            try {
+                restTemplate.delete("http://localhost:8081/songs?id=" + ids);
+            } catch (Exception ex2) {
+                throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex2);
+            }
         }
 
         resourceRepository.deleteAllInBatch(resources);
