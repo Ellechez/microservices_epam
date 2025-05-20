@@ -56,7 +56,7 @@ public class ResourceService {
         Resource resource = new Resource(filename, "audio/mpeg", fileBytes);
         Resource savedResource = resourceRepository.save(resource);
 
-        // REST call to song-service to delete associated metadata
+        // REST call to song-service to post associated metadata
         try {
             postSongMetadata(savedResource.getId(), resourceMetadata, songServiceUrl + "/songs");
             logger.info("Song metadata posted successfully for Resource ID: {}", savedResource.getId());
@@ -119,7 +119,7 @@ public class ResourceService {
 
         // REST call to song-service to delete associated metadata
         try {
-            restTemplate.delete(songServiceUrl + "songs?id=" + ids);
+            restTemplate.delete(songServiceUrl + "/songs?id=" + ids);
         } catch (Exception ex2) {
             throw new RuntimeException("Failed to delete song metadata for Resource ID=" + ids, ex2);
         }

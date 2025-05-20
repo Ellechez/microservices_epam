@@ -1,9 +1,10 @@
 package com.training.model;
 
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
+
+import javax.persistence.*;
 
 @Entity
 @Data
