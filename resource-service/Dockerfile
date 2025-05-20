@@ -1,7 +1,7 @@
 # Dockerfile
 
 # --- Build Stage ---
-FROM maven:3.9.9-eclipse-temurin-21-alpine as build
+FROM maven:3.9.9-eclipse-temurin-17-alpine as build
 
 # Set the working directory for the build stage
 WORKDIR /app
@@ -19,7 +19,7 @@ COPY src ./src
 RUN mvn clean package -Dmaven.test.skip=true
 
 # --- Runtime Stage ---
-FROM maven:3.9.9-eclipse-temurin-21-alpine as runtime
+FROM maven:3.9.9-eclipse-temurin-17-alpine as runtime
 
 # Set the working directory for the runtime stage
 WORKDIR /app

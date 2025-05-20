@@ -1,6 +1,19 @@
 version: "3.9"
 services:
 
+  eureka-service-discovery:
+    container_name: eureka-service-discovery
+    build:
+      context: ./eureka-service-discovery
+    image: eureka-service-discovery
+    ports:
+      - "8761:8761"
+    environment:
+      SERVER_PORT: 8761
+    networks:
+      - app-network
+
+
   resource-db:
     image: postgres:16-alpine
     container_name: resource-db
@@ -51,31 +64,41 @@ services:
       SPRING_DATASOURCE_URL: ${RESOURCE_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${RESOURCE_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${RESOURCE_DB_PASSWORD}
-      SONG_SERVICE_URL: ${SONG_SERVICE_URL}
+      SERVICE_NAME: resource-service
+      EUREKA_CLIENT_SERVICE_URL: ${EUREKA_URL}
     depends_on:
       resource-db:
+        condition: service_started
+      eureka-service-discovery:
         condition: service_started
     networks:
       - app-network
 
 
   song-service:
+    deploy:
+      replicas: 2
     build:
       context: ./song-service
-    container_name: song-service
     ports:
-      - "8081:8081"
+      - "8081-8082:8081"
     environment:
       SPRING_DATASOURCE_URL: ${SONG_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${SONG_DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${SONG_DB_PASSWORD}
+      SERVICE_NAME: song-service
+      EUREKA_CLIENT_SERVICE_URL: ${EUREKA_URL}
     depends_on:
       song-db:
+        condition: service_started
+      eureka-service-discovery:
         condition: service_started
     networks:
       - app-network
 
 
+
 networks:
   app-network:
     driver: bridge
+

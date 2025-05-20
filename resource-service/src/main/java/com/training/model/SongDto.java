@@ -1,6 +1,5 @@
 package com.training.model;
 
-import jakarta.validation.constraints.*;
 import lombok.*;
 
 @Data

@@ -2,8 +2,6 @@ package com.training.controller;
 
 import com.training.model.SongDto;
 import com.training.service.SongService;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +16,12 @@ public class SongController {
     private SongService songService;
 
     @PostMapping(value = "/songs", produces = "application/json")
-    public ResponseEntity<Map<String, Integer>> createSong(@RequestBody @Valid SongDto songDTO) {
+    public ResponseEntity<Map<String, Integer>> createSong(@RequestBody SongDto songDTO) {
         return ResponseEntity.ok(Map.of("id", songService.store(songDTO).getId()));
     }
 
     @GetMapping(value="/songs/{id}", produces = "application/json")
-    public ResponseEntity<SongDto> getSongByResourceId(@PathVariable @Positive Integer id) {
+    public ResponseEntity<SongDto> getSongByResourceId(@PathVariable Integer id) {
         return ResponseEntity.ok(songService.getSongByResourceId(id));
     }
 
